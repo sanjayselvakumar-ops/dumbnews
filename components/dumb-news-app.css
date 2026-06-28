@@ -1,0 +1,980 @@
+.stage {
+  align-items: center;
+  --bg: #ffffff;
+  --ink: #000000;
+  --line: #000000;
+  --muted-line: #b7b7b7;
+  --stage-bg: #f2f2f2;
+  background: var(--stage-bg);
+  color: var(--ink);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 18px;
+}
+
+.theme-dark {
+  --bg: #000000;
+  --ink: #ffffff;
+  --line: #ffffff;
+  --muted-line: #777777;
+  --stage-bg: #000000;
+}
+
+.theme-warm {
+  --bg: #fbf4e7;
+  --ink: #000000;
+  --line: #000000;
+  --muted-line: #a99f90;
+  --stage-bg: #eee3d1;
+}
+
+.phone {
+  background: var(--bg);
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  height: min(860px, calc(100vh - 36px));
+  max-height: 860px;
+  overflow: hidden;
+  position: relative;
+  width: min(430px, calc(100vw - 24px));
+}
+
+.webApp {
+  display: none;
+}
+
+.authShell {
+  align-items: center;
+  background: var(--bg);
+  border: 3px solid var(--line);
+  display: flex;
+  justify-content: center;
+  min-height: min(760px, calc(100vh - 36px));
+  padding: 26px;
+  width: min(520px, calc(100vw - 24px));
+}
+
+.authBox {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+}
+
+.authBox h1 {
+  font-size: clamp(42px, 10vw, 58px);
+  line-height: 0.95;
+  margin: 0;
+  text-align: center;
+}
+
+.authBox p {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.authForm label {
+  display: flex;
+  flex-direction: column;
+  font-size: 17px;
+  font-weight: 700;
+  gap: 8px;
+}
+
+.authForm input {
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  min-width: 0;
+  padding: 12px;
+}
+
+.authError {
+  border: 2px solid var(--line);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 12px;
+  text-transform: uppercase;
+}
+
+.plainSwitch {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 10px 0;
+  text-decoration: underline;
+}
+
+.font-small {
+  font-size: 14px;
+  --font-step: -2px;
+  --row-scale: 1;
+}
+
+.font-normal {
+  font-size: 16px;
+  --font-step: 0px;
+  --row-scale: 1;
+}
+
+.font-large {
+  font-size: 18px;
+  --font-step: 2px;
+  --row-scale: 1;
+}
+
+.status {
+  align-items: center;
+  display: grid;
+  flex: 0 0 54px;
+  font-size: 24px;
+  font-weight: 700;
+  grid-template-columns: 1fr auto;
+  line-height: 1;
+  padding: 15px 22px 6px;
+}
+
+.screen {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.brandBlock {
+  align-items: center;
+  border-bottom: 3px solid var(--line);
+  display: flex;
+  flex: 0 0 132px;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 6px;
+}
+
+.brandBlock h1 {
+  font-size: clamp(42px, 10vw, 54px);
+  line-height: 0.95;
+  margin: 0 0 14px;
+}
+
+.brandBlock p {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+}
+
+.dateRail {
+  align-items: center;
+  border-bottom: 2px solid var(--line);
+  display: flex;
+  flex: 0 0 50px;
+  font-size: 25px;
+  font-weight: 700;
+  justify-content: space-between;
+  line-height: 1;
+  padding: 0 24px;
+}
+
+.readTime {
+  align-items: center;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  flex: 0 0 56px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 6px 16px;
+  justify-content: space-between;
+  line-height: 1.15;
+  padding: 0 24px;
+  text-transform: uppercase;
+}
+
+.newStoriesButton {
+  background: var(--ink);
+  border: 2px solid var(--line);
+  color: var(--bg);
+  flex: 0 0 42px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 0;
+  padding: 0 16px;
+  text-align: center;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.completeBanner {
+  border-bottom: 2px solid var(--line);
+  flex: 0 0 38px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 24px;
+}
+
+.storyList {
+  counter-reset: item;
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px;
+}
+
+.storyList li {
+  border-bottom: 1px dashed var(--line);
+}
+
+.storyList li:last-child {
+  border-bottom: 0;
+}
+
+.storyRow {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: grid;
+  gap: 22px;
+  grid-template-columns: 76px 1fr 24px;
+  min-height: calc(152px * var(--row-scale));
+  padding: 14px 0 18px 16px;
+  text-align: left;
+  width: 100%;
+}
+
+.storyRow:focus-visible,
+.readerActions button:focus-visible,
+.bottomNav button:focus-visible,
+.readerTop button:focus-visible,
+.hardButton:focus-visible,
+.newStoriesButton:focus-visible,
+.webNav button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: -3px;
+}
+
+.storyRow.selected {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.storyRow.selected .categoryIcon {
+  color: var(--bg);
+}
+
+.categoryIcon {
+  color: var(--ink);
+  display: block;
+  height: 64px;
+  justify-self: center;
+  width: 64px;
+}
+
+.heroIcon {
+  color: var(--ink);
+  display: block;
+  height: 120px;
+  margin: 8px auto 28px;
+  width: 120px;
+}
+
+.storyText {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.categoryLabel,
+.articleCategory,
+.sectionTitle {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.headline {
+  display: block;
+  font-size: calc(20px + var(--font-step));
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.storyMeta {
+  font-size: calc(12px + var(--font-step));
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.chevron {
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.readerTop {
+  align-items: center;
+  border-bottom: 3px solid var(--line);
+  display: grid;
+  flex: 0 0 80px;
+  font-size: 25px;
+  font-weight: 700;
+  grid-template-columns: 1fr 1fr;
+  line-height: 1;
+  padding: 0 24px;
+}
+
+.readerTop button {
+  background: transparent;
+  border: 0;
+  font-weight: 700;
+  padding: 12px 0;
+  text-align: left;
+}
+
+.readerTop span {
+  text-align: center;
+}
+
+.article {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 40px 36px 28px;
+}
+
+.articleCategory {
+  margin-bottom: 8px;
+}
+
+.article h2 {
+  font-size: 27px;
+  line-height: 1.45;
+  margin: 0 0 28px;
+}
+
+.rule {
+  border-top: 2px solid var(--muted-line);
+  margin: 0 0 30px;
+}
+
+.article p,
+.article a {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0 0 28px;
+}
+
+.article strong {
+  font-weight: 700;
+}
+
+.article h3 {
+  font-size: 18px;
+  line-height: 1;
+  margin: 0 0 10px;
+}
+
+.readerActions {
+  border-top: 3px solid var(--line);
+  display: grid;
+  flex: 0 0 86px;
+  grid-template-columns: 1fr 1.15fr 0.9fr 1fr;
+}
+
+.readerActions button {
+  background: transparent;
+  border: 0;
+  border-right: 2px solid var(--line);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.12;
+  padding: 0 6px;
+}
+
+.readerActions button:last-child {
+  border-right: 0;
+}
+
+.readerActions button:disabled {
+  color: var(--muted-line);
+}
+
+.bottomNav {
+  border-top: 3px solid var(--line);
+  display: grid;
+  flex: 0 0 86px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.bottomNav button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-right: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 4px;
+  justify-content: center;
+  line-height: 1;
+}
+
+.bottomNav button:last-child {
+  border-right: 0;
+}
+
+.bottomNav button.active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.bottomNav button.active .navIcon {
+  --icon-cutout: var(--ink);
+}
+
+.navIcon {
+  height: 28px;
+  width: 28px;
+}
+
+.utilityScreen {
+  padding-top: 0;
+}
+
+.utilityScreen > .sectionTitle,
+.completeScreen > .sectionTitle {
+  border-bottom: 3px solid var(--line);
+  flex: 0 0 70px;
+  padding: 25px 24px 0;
+}
+
+.sectionTitle.small {
+  border-bottom-width: 2px;
+  border-top: 2px solid var(--line);
+  flex: 0 0 auto;
+  font-size: 18px;
+  padding: 18px 24px;
+}
+
+.compact .storyRow {
+  min-height: 116px;
+}
+
+.emptyState {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  font-size: 22px;
+  font-weight: 700;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.searchBox {
+  align-items: center;
+  border-bottom: 3px solid var(--line);
+  display: grid;
+  flex: 0 0 72px;
+  gap: 12px;
+  grid-template-columns: 32px 1fr;
+  padding: 0 24px;
+}
+
+.smallIcon {
+  height: 28px;
+  width: 28px;
+}
+
+.searchBox input {
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 700;
+  min-width: 0;
+  outline: 0;
+  text-transform: uppercase;
+}
+
+.settingBlock {
+  border-bottom: 2px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.settingBlock label {
+  align-items: center;
+  border-bottom: 1px dashed var(--line);
+  display: flex;
+  font-size: 19px;
+  font-weight: 700;
+  justify-content: space-between;
+  min-height: 66px;
+  padding: 0 24px;
+}
+
+.settingBlock label:last-child {
+  border-bottom: 0;
+}
+
+.accountBlock {
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 18px 24px;
+  text-transform: uppercase;
+}
+
+.accountBlock strong {
+  overflow-wrap: anywhere;
+}
+
+.accountActions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+  margin-top: 8px;
+}
+
+.settingBlock select,
+.settingBlock input {
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.checkRow {
+  align-items: center;
+  border-bottom: 1px dashed var(--line);
+  border-right: 1px dashed var(--line);
+  display: flex;
+  font-size: 16px;
+  font-weight: 700;
+  gap: 8px;
+  min-height: 54px;
+  padding: 0 14px;
+  text-transform: uppercase;
+}
+
+.checkRow:nth-child(2n) {
+  border-right: 0;
+}
+
+.checkRow input {
+  accent-color: var(--ink);
+  height: 18px;
+  width: 18px;
+}
+
+.completeScreen {
+  align-items: stretch;
+}
+
+.doneCopy {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  font-size: 24px;
+  font-weight: 700;
+  gap: 20px;
+  justify-content: center;
+  line-height: 1.35;
+  padding: 36px;
+  text-align: center;
+}
+
+.hardButton {
+  background: var(--ink);
+  border: 0;
+  color: var(--bg);
+  flex: 0 0 74px;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  min-height: 54px;
+  padding: 0 16px;
+}
+
+.hardButton.secondary {
+  background: var(--bg);
+  border: 2px solid var(--line);
+  color: var(--ink);
+}
+
+@media (min-width: 900px) {
+  .stage {
+    align-items: stretch;
+    background: var(--bg);
+    justify-content: stretch;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .mobileApp {
+    display: none;
+  }
+
+  .webApp {
+    background: var(--bg);
+    border: 0;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .webHeader {
+    align-items: center;
+    border-bottom: 3px solid var(--line);
+    display: flex;
+    flex: 0 0 78px;
+    justify-content: space-between;
+    padding: 0 26px 0 30px;
+  }
+
+  .webBrand {
+    align-items: baseline;
+    display: flex;
+    gap: 30px;
+    min-width: 0;
+  }
+
+  .webBrand h1 {
+    font-size: 38px;
+    line-height: 1;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .webBrand p {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  .webHeaderMeta {
+    align-items: center;
+    display: flex;
+    font-size: 16px;
+    font-weight: 700;
+    gap: 26px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .webBody {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: 238px minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .webSidebar {
+    border-right: 2px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+    padding: 18px 22px 20px;
+  }
+
+  .webNav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .webNav button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    display: grid;
+    font-size: 18px;
+    font-weight: 700;
+    gap: 16px;
+    grid-template-columns: 34px 1fr;
+    min-height: 58px;
+    padding: 0 14px;
+    text-align: left;
+  }
+
+  .webNav button.active {
+    background: var(--ink);
+    border-radius: 5px;
+    color: var(--bg);
+  }
+
+  .webNav button.active .webNavIcon {
+    --icon-cutout: var(--ink);
+    color: var(--bg);
+  }
+
+  .webNavIcon {
+    height: 31px;
+    width: 31px;
+  }
+
+  .webBriefCard {
+    border: 2px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    font-weight: 700;
+    gap: 5px;
+    line-height: 1.25;
+    padding: 18px 18px;
+  }
+
+  .webBriefCard strong {
+    font-size: 38px;
+    line-height: 1;
+  }
+
+  .compactUpdate {
+    flex: 0 0 38px;
+    margin-top: 8px;
+  }
+
+  .webListPanel,
+  .webDetailPage,
+  .webUtilityPanel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .webListPanel {
+    border-right: 0;
+  }
+
+  .webPanelTitle {
+    align-items: center;
+    border-bottom: 2px solid var(--line);
+    display: flex;
+    flex: 0 0 58px;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 0 24px;
+  }
+
+  .webUpdateButton {
+    border-left: 0;
+    border-right: 0;
+    flex: 0 0 48px;
+  }
+
+  .webSearchBox {
+    flex: 0 0 66px;
+  }
+
+  .webListPanel .storyList {
+    padding: 0;
+  }
+
+  .webListPanel .storyRow {
+    gap: 18px;
+    grid-template-columns: 74px 1fr 24px;
+    min-height: 150px;
+    padding: 16px 18px;
+  }
+
+  .webListPanel .categoryIcon {
+    height: 58px;
+    width: 58px;
+  }
+
+  .webListPanel .categoryLabel {
+    font-size: 15px;
+  }
+
+  .webListPanel .headline {
+    font-size: 20px;
+    line-height: 1.28;
+  }
+
+  .webListPanel .chevron {
+    font-size: 42px;
+  }
+
+  .webDetailPage .detailScreen {
+    flex: 1 1 auto;
+  }
+
+  .webDetailPage .readerTop {
+    grid-template-columns: 1fr auto;
+  }
+
+  .webDetailPage .article {
+    padding: 34px clamp(32px, 8vw, 104px) 28px;
+  }
+
+  .webDetailPage .heroIcon {
+    height: 142px;
+    margin: 14px auto 30px;
+    width: 142px;
+  }
+
+  .webDetailPage .article h2 {
+    font-size: calc(30px + var(--font-step));
+    line-height: 1.42;
+    max-width: 920px;
+  }
+
+  .webDetailPage .article p,
+  .webDetailPage .article a {
+    font-size: calc(19px + var(--font-step));
+    line-height: 1.55;
+    max-width: 920px;
+  }
+
+  .webDetailPage .readerActions {
+    flex: 0 0 70px;
+  }
+
+  .webUtilityPanel {
+    grid-column: 2;
+  }
+
+  .webUtilityPanel .screen {
+    flex: 1 1 auto;
+  }
+
+  .webFooter {
+    border-top: 2px solid var(--line);
+    flex: 0 0 44px;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 30px 0;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1120px) {
+  .webBody {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .webBrand {
+    gap: 18px;
+  }
+
+  .webBrand h1 {
+    font-size: 32px;
+  }
+
+  .webHeaderMeta {
+    gap: 16px;
+  }
+
+  .webListPanel .storyRow {
+    grid-template-columns: 58px 1fr 20px;
+  }
+
+  .webListPanel .categoryIcon {
+    height: 48px;
+    width: 48px;
+  }
+}
+
+@media (max-width: 420px) {
+  .stage {
+    padding: 0;
+  }
+
+  .phone {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .brandBlock h1 {
+    font-size: 42px;
+  }
+
+  .storyRow {
+    gap: 14px;
+    grid-template-columns: 62px 1fr 22px;
+    min-height: 166px;
+    padding: 14px 0 18px 10px;
+  }
+
+  .categoryIcon {
+    height: 54px;
+    width: 54px;
+  }
+
+  .heroIcon {
+    height: 96px;
+    width: 96px;
+  }
+
+  .headline {
+    font-size: calc(16px + var(--font-step));
+  }
+
+  .article {
+    padding: 30px 26px 24px;
+  }
+
+  .article h2 {
+    font-size: calc(23px + var(--font-step));
+  }
+
+  .article p,
+  .article a {
+    font-size: calc(19px + var(--font-step));
+  }
+
+  .readerActions button {
+    font-size: calc(15px + var(--font-step));
+  }
+}
