@@ -13,6 +13,7 @@ import {
   BookmarkIcon,
   CategoryIcon,
   NewsIcon,
+  PersonIcon,
   SearchIcon,
   SettingsIcon,
 } from "@/components/icons";
@@ -316,12 +317,6 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
       }
     }
   }, [accessToken]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    refreshBrief({ applyImmediately: true, signal: controller.signal });
-    return () => controller.abort();
-  }, [refreshBrief]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -652,7 +647,7 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
   }
 
   return (
-    <main className={`stage theme-${state.settings.theme} font-${state.settings.fontSize}`}>
+    <main className={`stage theme-${state.settings.theme} font-normal`}>
       <section className="phone mobileApp" aria-label="Dumb News mobile app">
         <StatusBar dateLabel={monthDay()} />
         {screen === "home" && (
@@ -1157,7 +1152,7 @@ function DesktopNav({ current, onChange }: { current: Screen; onChange: (screen:
         Settings
       </button>
       <a href="/account">
-        <SettingsIcon className="webNavIcon" />
+        <PersonIcon className="webNavIcon" />
         Account
       </a>
     </nav>
@@ -1444,35 +1439,6 @@ function SettingsScreen({
             <option value="dark">DARK</option>
             <option value="warm">WARM</option>
           </select>
-        </label>
-        <label>
-          FONT SIZE
-          <select
-            value={state.settings.fontSize}
-            onChange={(event) =>
-              updateState((current) => ({
-                ...current,
-                settings: { ...current.settings, fontSize: event.target.value as StoredState["settings"]["fontSize"] }
-              }))
-            }
-          >
-            <option value="small">SMALL</option>
-            <option value="normal">NORMAL</option>
-            <option value="large">LARGE</option>
-          </select>
-        </label>
-        <label>
-          NOTIFY
-          <input
-            type="time"
-            value={state.settings.notificationTime}
-            onChange={(event) =>
-              updateState((current) => ({
-                ...current,
-                settings: { ...current.settings, notificationTime: event.target.value }
-              }))
-            }
-          />
         </label>
       </div>
       <div className="sectionTitle small">CATEGORIES</div>

@@ -107,7 +107,6 @@ describe("DumbNewsApp", () => {
       "fetch",
       vi
         .fn()
-        .mockResolvedValueOnce({ ok: true, json: async () => brief })
         .mockResolvedValueOnce({ ok: true, json: async () => nextBrief })
     );
 
@@ -115,7 +114,7 @@ describe("DumbNewsApp", () => {
       render(<DumbNewsApp bypassAuthForTests initialBrief={brief} />);
     });
 
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).not.toHaveBeenCalled();
 
     await act(async () => {
       vi.advanceTimersByTime(1000 * 60 * 10);
@@ -123,6 +122,7 @@ describe("DumbNewsApp", () => {
       await Promise.resolve();
     });
 
+    expect(fetch).toHaveBeenCalledTimes(1);
     expect(screen.getAllByText("1 NEW STORIES").length).toBeGreaterThan(0);
     expect(screen.queryByText("Senate passes a temporary spending bill")).toBeNull();
 

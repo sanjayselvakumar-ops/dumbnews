@@ -125,6 +125,15 @@ export function SettingsIcon(props: IconProps) {
   );
 }
 
+export function PersonIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="32" cy="20" r="11" fill="currentColor" />
+      <path d="M14 56c2-14 9-22 18-22s16 8 18 22H14z" fill="currentColor" />
+    </Svg>
+  );
+}
+
 export function SearchIcon(props: IconProps) {
   return (
     <Svg {...props}>
