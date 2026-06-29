@@ -49,24 +49,29 @@
 
 .authShell {
   align-items: center;
-  background: var(--bg);
-  border: 3px solid var(--line);
+  background: transparent;
+  border: 0;
   display: flex;
   justify-content: center;
-  min-height: min(760px, calc(100vh - 36px));
-  padding: 26px;
-  width: min(520px, calc(100vw - 24px));
-}
-
-.authBox {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  min-height: calc(100vh - 36px);
+  padding: 32px;
   width: 100%;
 }
 
+.authBox {
+  align-items: stretch;
+  background: var(--bg);
+  border: 3px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 460px;
+  padding: 34px;
+  width: min(460px, calc(100vw - 32px));
+}
+
 .authBox h1 {
-  font-size: clamp(42px, 10vw, 58px);
+  font-size: clamp(42px, 8vw, 64px);
   line-height: 0.95;
   margin: 0;
   text-align: center;
@@ -75,7 +80,7 @@
 .authBox p {
   font-size: 18px;
   font-weight: 700;
-  margin: 0 0 12px;
+  margin: 0 0 18px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -92,6 +97,7 @@
   font-size: 17px;
   font-weight: 700;
   gap: 8px;
+  text-align: left;
 }
 
 .authForm input {

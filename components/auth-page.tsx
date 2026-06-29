@@ -1,11 +1,10 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export function AuthPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,20 +26,21 @@ export function AuthPage() {
     const result = isSignUp
       ? await supabase.auth.signUp({ email, password })
       : await supabase.auth.signInWithPassword({ email, password });
-    setIsSubmitting(false);
 
     if (result.error) {
+      setIsSubmitting(false);
       setMessage(result.error.message);
       return;
     }
 
     if (isSignUp && !result.data.session) {
+      setIsSubmitting(false);
       setMessage("Check your email to confirm your account, then log in.");
       return;
     }
 
-    router.replace(searchParams.get("next") || "/app");
-    router.refresh();
+    setMessage("Loading app...");
+    window.location.assign(searchParams.get("next") || "/app");
   }
 
   return (
