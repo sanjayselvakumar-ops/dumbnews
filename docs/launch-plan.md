@@ -23,6 +23,8 @@
 ## 3. Verify News Ingestion And Quality
 
 - Confirm all configured RSS feeds respond in production.
+- Confirm NewsAPI.org responds in production and is only called by the backend.
+- Confirm NewsAPI usage is protected by Supabase/cache freshness so users do not spend quota directly.
 - Confirm normalized stories are upserted into Supabase `stories`.
 - Confirm the app stores summaries, metadata, timestamps, categories, source names, and source links only.
 - Review summary quality daily before launch; remove feeds with poor snippets or recurring low-quality summaries.

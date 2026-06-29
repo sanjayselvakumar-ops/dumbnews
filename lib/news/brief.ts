@@ -3,7 +3,13 @@ import type { DailyBrief, FeedConfig, MembershipTier, NewsStory } from "./types"
 import { FEEDS } from "./feeds";
 import { fallbackBrief, FALLBACK_STORIES } from "./fallback";
 import { refreshIntervalForTier, storyLimitForTier } from "@/lib/membership";
-import { getSupabaseAdminClient, loadPersistedStories, upsertStories } from "@/lib/supabase/server";
+import {
+  getSupabaseAdminClient,
+  loadLatestStoryUpdate,
+  loadPersistedStories,
+  upsertStories
+} from "@/lib/supabase/server";
+import { fetchNewsApiStories, hasNewsApiKey, isFreeOutlet, NEWS_API_CACHE_MS } from "./news-api";
 import { extractReadableText } from "./readability";
 import {
   backgroundContext,
@@ -24,6 +30,7 @@ const parser = new Parser();
 let cache: CacheEntry | null = null;
 export const BRIEF_CACHE_MS = 1000 * 60 * 5;
 export const MAX_ITEMS_PER_FEED = 20;
+const SAMPLE_SOURCE = "Sample Brief";
 
 type BriefOptions = {
   force?: boolean;
@@ -144,18 +151,26 @@ export async function getDailyBrief(options: BriefOptions | boolean = {}): Promi
     return applyTier(cache.brief, membershipTier);
   }
 
-  const settled = await Promise.all(FEEDS.map(fetchFeed));
-  const liveStories = rankStories(dedupeStories(settled.flat()));
   const admin = getSupabaseAdminClient();
+  const persistedStories = admin ? await loadPersistedStories(admin).catch(() => []) : [];
+  const latestPersistedUpdate = admin ? await loadLatestStoryUpdate(admin).catch(() => null) : null;
+  const hasFreshPersistedNews =
+    Boolean(latestPersistedUpdate) &&
+    Date.now() - new Date(latestPersistedUpdate as string).getTime() < NEWS_API_CACHE_MS &&
+    persistedStories.length >= 10;
+  const liveStories = hasFreshPersistedNews
+    ? []
+    : await fetchLiveStories();
 
   if (admin && liveStories.length > 0) {
     await upsertStories(admin, liveStories);
   }
 
-  const persistedStories = admin ? await loadPersistedStories(admin).catch(() => []) : [];
+  const nextPersistedStories = liveStories.length > 0 && admin ? await loadPersistedStories(admin).catch(() => persistedStories) : persistedStories;
+  const productionPersistedStories = removeSampleStoriesWhenRealNewsExists(nextPersistedStories);
   const stories =
-    persistedStories.length > 0
-      ? rankStories(dedupeStories([...liveStories, ...persistedStories]))
+    productionPersistedStories.length > 0
+      ? rankStories(dedupeStories([...liveStories, ...productionPersistedStories]))
       : liveStories.length >= 5
         ? liveStories
         : FALLBACK_STORIES;
@@ -207,7 +222,11 @@ export { dedupeStories, rankStories };
 
 export function applyTier(brief: DailyBrief, membershipTier: MembershipTier): DailyBrief {
   const limit = storyLimitForTier(membershipTier);
-  const stories = limit === null ? brief.stories : brief.stories.slice(0, limit);
+  const tierStories =
+    membershipTier === "free"
+      ? preferFreeOutletStories(brief.stories)
+      : brief.stories;
+  const stories = limit === null ? tierStories : tierStories.slice(0, limit);
 
   return {
     ...brief,
@@ -216,4 +235,32 @@ export function applyTier(brief: DailyBrief, membershipTier: MembershipTier): Da
     readTimeMinutes: estimateReadTime(stories.length),
     stories
   };
+}
+
+async function fetchLiveStories(): Promise<NewsStory[]> {
+  if (hasNewsApiKey()) {
+    const newsApiStories = rankStories(dedupeStories(await fetchNewsApiStories()));
+    if (newsApiStories.length >= 10) {
+      return newsApiStories;
+    }
+  }
+
+  const settled = await Promise.all(FEEDS.map(fetchFeed));
+  return rankStories(dedupeStories(settled.flat()));
+}
+
+function preferFreeOutletStories(stories: NewsStory[]): NewsStory[] {
+  const freeOutletStories = stories.filter((story) => isFreeOutlet(story.source));
+
+  if (freeOutletStories.length >= 10) {
+    return freeOutletStories;
+  }
+
+  return stories;
+}
+
+function removeSampleStoriesWhenRealNewsExists(stories: NewsStory[]): NewsStory[] {
+  const realStories = stories.filter((story) => story.source !== SAMPLE_SOURCE);
+
+  return realStories.length >= 10 ? realStories : stories;
 }

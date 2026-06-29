@@ -125,4 +125,27 @@ describe("news helpers", () => {
     expect(freeBrief.stories).toHaveLength(10);
     expect(paidBrief.stories).toHaveLength(48);
   });
+
+  it("shows free users limited-outlet news before broader paid outlets", () => {
+    const limitedOutletStories = Array.from({ length: 10 }, (_, index) => ({
+      ...baseStory,
+      id: `bbc-${index}`,
+      source: "BBC",
+      timestamp: new Date(Date.UTC(2026, 5, 26, 20, index)).toISOString()
+    }));
+    const broaderOutletStories = Array.from({ length: 5 }, (_, index) => ({
+      ...baseStory,
+      id: `espn-${index}`,
+      source: "ESPN",
+      timestamp: new Date(Date.UTC(2026, 5, 26, 21, index)).toISOString()
+    }));
+    const brief = {
+      generatedAt: baseStory.timestamp,
+      readTimeMinutes: 5,
+      stories: [...broaderOutletStories, ...limitedOutletStories]
+    };
+
+    expect(applyTier(brief, "free").stories.every((story) => story.source === "BBC")).toBe(true);
+    expect(applyTier(brief, "paid").stories.some((story) => story.source === "ESPN")).toBe(true);
+  });
 });

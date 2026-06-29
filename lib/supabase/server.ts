@@ -186,6 +186,17 @@ export async function loadPersistedStories(admin: SupabaseClient): Promise<NewsS
   return (data ?? []).map(fromDatabaseStory);
 }
 
+export async function loadLatestStoryUpdate(admin: SupabaseClient): Promise<string | null> {
+  const { data } = await admin
+    .from("stories")
+    .select("updated_at")
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data?.updated_at ?? null;
+}
+
 function toDatabaseStory(story: NewsStory): DatabaseStory {
   return {
     id: story.id,

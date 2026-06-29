@@ -20,6 +20,7 @@ NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+NEWS_API_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_PRICE_ID=
 STRIPE_WEBHOOK_SECRET=
@@ -58,6 +59,14 @@ Subscribe to:
 - `checkout.session.completed`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
+
+## News Source Setup
+
+Set `NEWS_API_KEY` to use NewsAPI.org as the primary backend news source.
+
+The app does not call NewsAPI from each user device. The backend fetches news into the shared cache/Supabase store, and users read from that cached data. Free users see a 10-news slice from a limited source set. Paid users see the broader cached source set.
+
+RSS feeds remain as a fallback if NewsAPI is unavailable or out of quota.
 
 ## Verification
 
