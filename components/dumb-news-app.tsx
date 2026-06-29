@@ -1118,6 +1118,7 @@ function DesktopShell({
         {current === "membership" && (
           <section className="webUtilityPanel">
             <MembershipScreen
+              availableStoryCount={brief.totalAvailableStories ?? stories.length}
               isCheckoutLoading={isCheckoutLoading}
               isPortalLoading={isPortalLoading}
               isPriceLoading={isPriceLoading}
@@ -1357,6 +1358,7 @@ function SearchScreen({
 }
 
 function MembershipScreen({
+  availableStoryCount,
   isCheckoutLoading,
   isPortalLoading,
   isPriceLoading,
@@ -1366,6 +1368,7 @@ function MembershipScreen({
   price,
   profile
 }: {
+  availableStoryCount: number;
   isCheckoutLoading: boolean;
   isPortalLoading: boolean;
   isPriceLoading: boolean;
@@ -1376,6 +1379,7 @@ function MembershipScreen({
   profile: AccountProfile | null;
 }) {
   const isPaid = profile?.membershipTier === "paid";
+  const proStoryLabel = availableStoryCount >= 400 ? `${availableStoryCount} STORIES AVAILABLE` : "ALL CACHED NEWS";
 
   return (
     <div className="screen utilityScreen membershipScreen">
@@ -1394,7 +1398,7 @@ function MembershipScreen({
         <section className={`planBox ${isPaid ? "selected" : ""}`}>
           <span className="planEyebrow">PRO</span>
           <h2>{isPriceLoading ? "LOADING..." : price?.display ?? "$2.50 / month"}</h2>
-          <strong>ALL CACHED NEWS</strong>
+          <strong>{proStoryLabel}</strong>
           <p>Shows every cached story available in the news backend with faster 5 minute refresh.</p>
           {isPaid ? (
             <button className="hardButton" disabled={isPortalLoading} type="button" onClick={onManageBilling}>

@@ -27,6 +27,7 @@ export type DailyBrief = {
   readTimeMinutes: number;
   membershipTier?: MembershipTier;
   refreshIntervalMs?: number;
+  totalAvailableStories?: number;
   stories: NewsStory[];
 };
 

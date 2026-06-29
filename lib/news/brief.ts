@@ -183,6 +183,7 @@ export async function getDailyBrief(options: BriefOptions | boolean = {}): Promi
     readTimeMinutes: estimateReadTime(stories.length),
     membershipTier: "paid",
     refreshIntervalMs: refreshIntervalForTier("paid"),
+    totalAvailableStories: stories.length,
     stories
   };
 
@@ -232,6 +233,7 @@ export function applyTier(brief: DailyBrief, membershipTier: MembershipTier): Da
     ...brief,
     membershipTier,
     refreshIntervalMs: refreshIntervalForTier(membershipTier),
+    totalAvailableStories: brief.totalAvailableStories ?? brief.stories.length,
     readTimeMinutes: estimateReadTime(stories.length),
     stories
   };
