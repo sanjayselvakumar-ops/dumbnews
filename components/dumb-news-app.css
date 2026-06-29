@@ -796,7 +796,7 @@
     display: grid;
     flex: 0 0 78px;
     gap: 24px;
-    grid-template-columns: minmax(310px, 1fr) auto minmax(110px, 1fr);
+    grid-template-columns: minmax(310px, 1fr) auto;
     padding: 0 26px 0 30px;
   }
 
@@ -830,17 +830,6 @@
     line-height: 1;
     white-space: nowrap;
     justify-content: flex-end;
-  }
-
-  .webHeader .membershipSelector {
-    min-width: 330px;
-    min-height: 46px;
-  }
-
-  .webHeader .membershipSelector button {
-    font-size: 13px;
-    min-width: 126px;
-    padding: 7px 11px;
   }
 
   .webBody {
@@ -1024,6 +1013,75 @@
     flex: 1 1 auto;
   }
 
+  .membershipScreen {
+    overflow: hidden;
+  }
+
+  .membershipTop {
+    flex: 0 0 72px;
+  }
+
+  .membershipPlans {
+    display: grid;
+    flex: 1 1 auto;
+    gap: 24px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+    overflow-y: auto;
+    padding: 34px;
+  }
+
+  .planBox {
+    border: 3px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 360px;
+    padding: 28px;
+  }
+
+  .planBox.selected {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .planBox h2 {
+    font-size: 34px;
+    line-height: 1.05;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .planBox strong {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+
+  .planBox p {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .planEyebrow,
+  .planStatus {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .planBox .hardButton {
+    margin-top: auto;
+  }
+
+  .planBox.selected .hardButton {
+    background: var(--bg);
+    border: 2px solid var(--bg);
+    color: var(--ink);
+  }
+
   .webFooter {
     border-top: 2px solid var(--line);
     flex: 0 0 44px;
@@ -1048,15 +1106,6 @@
 
   .webHeaderMeta {
     gap: 16px;
-  }
-
-  .webHeader .membershipSelector {
-    min-width: 280px;
-  }
-
-  .webHeader .membershipSelector button {
-    font-size: 12px;
-    min-width: 108px;
   }
 
   .webListPanel .storyRow {

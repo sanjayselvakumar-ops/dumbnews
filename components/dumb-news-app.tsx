@@ -8,7 +8,7 @@ import type { DailyBrief, NewsCategory, NewsStory } from "@/lib/news/types";
 import { defaultStoredState, loadStoredState, saveStoredState, type StoredState } from "@/lib/app-storage";
 import { monthDay, shortTime, todayKey } from "@/lib/date";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { MembershipSelector, type BillingPrice } from "@/components/membership-selector";
+import type { BillingPrice } from "@/components/membership-selector";
 import {
   BookmarkIcon,
   CategoryIcon,
@@ -18,7 +18,7 @@ import {
   SettingsIcon,
 } from "@/components/icons";
 
-type Screen = "home" | "detail" | "saved" | "search" | "settings" | "complete";
+type Screen = "home" | "detail" | "saved" | "search" | "settings" | "membership" | "complete";
 
 type DumbNewsAppProps = {
   initialBrief: DailyBrief;
@@ -74,6 +74,7 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
   const [accountSavedStories, setAccountSavedStories] = useState<NewsStory[]>([]);
   const [screen, setScreen] = useState<Screen>("home");
   const [returnScreen, setReturnScreen] = useState<Screen>("home");
+  const [membershipReturnScreen, setMembershipReturnScreen] = useState<Screen>("home");
   const [activeIndex, setActiveIndex] = useState(0);
   const [detailStories, setDetailStories] = useState<NewsStory[]>(initialBrief.stories);
   const [query, setQuery] = useState("");
@@ -456,6 +457,17 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
     setScreen(returnScreen === "detail" ? "home" : returnScreen);
   }
 
+  function changeScreen(nextScreen: Screen) {
+    if (nextScreen === "membership" && screen !== "membership") {
+      setMembershipReturnScreen(screen === "detail" ? returnScreen : screen);
+    }
+    setScreen(nextScreen);
+  }
+
+  function goBackFromMembership() {
+    setScreen(membershipReturnScreen === "membership" ? "home" : membershipReturnScreen);
+  }
+
   function goNext() {
     const nextIndex = activeIndex + 1;
 
@@ -696,13 +708,7 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
         )}
         {screen === "settings" && (
           <SettingsScreen
-            isCheckoutLoading={isCheckoutLoading}
-            isPortalLoading={isPortalLoading}
-            isPriceLoading={isPriceLoading}
-            onManageBilling={openCustomerPortal}
             onSignOut={signOut}
-            onUpgrade={startCheckout}
-            price={price}
             profile={activeProfile}
             state={state}
             updateState={updateState}
@@ -725,7 +731,8 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
         isRefreshing={isRefreshing}
         lastUpdated={lastUpdated}
         onBack={goBackFromDetail}
-        onChangeScreen={setScreen}
+        onChangeScreen={changeScreen}
+        onMembershipBack={goBackFromMembership}
         onManageBilling={openCustomerPortal}
         onShowNewStories={applyPendingBrief}
         onSignOut={signOut}
@@ -946,6 +953,7 @@ function DesktopShell({
   onBack,
   onChangeScreen,
   onManageBilling,
+  onMembershipBack,
   onShowNewStories,
   onSignOut,
   onHome,
@@ -985,6 +993,7 @@ function DesktopShell({
   onBack: () => void;
   onChangeScreen: (screen: Screen) => void;
   onManageBilling: () => void;
+  onMembershipBack: () => void;
   onShowNewStories: () => void;
   onSignOut: () => void;
   onHome: () => void;
@@ -1022,15 +1031,6 @@ function DesktopShell({
           <h1>DUMB NEWS</h1>
           <p>NEWS FOR DUMMIES.</p>
         </div>
-        <MembershipSelector
-          isCheckoutLoading={isCheckoutLoading}
-          isPortalLoading={isPortalLoading}
-          isPriceLoading={isPriceLoading}
-          onManageBilling={onManageBilling}
-          onUpgrade={onUpgrade}
-          price={price}
-          profile={profile}
-        />
         <div className="webHeaderMeta">
           <span suppressHydrationWarning>{dateLabel}</span>
         </div>
@@ -1108,16 +1108,24 @@ function DesktopShell({
         {current === "settings" && (
           <section className="webUtilityPanel">
             <SettingsScreen
-              isCheckoutLoading={isCheckoutLoading}
-              isPortalLoading={isPortalLoading}
-              isPriceLoading={isPriceLoading}
-              onManageBilling={onManageBilling}
               onSignOut={onSignOut}
-              onUpgrade={onUpgrade}
-              price={price}
               profile={profile}
               state={state}
               updateState={updateState}
+            />
+          </section>
+        )}
+        {current === "membership" && (
+          <section className="webUtilityPanel">
+            <MembershipScreen
+              isCheckoutLoading={isCheckoutLoading}
+              isPortalLoading={isPortalLoading}
+              isPriceLoading={isPriceLoading}
+              onBack={onMembershipBack}
+              onManageBilling={onManageBilling}
+              onUpgrade={onUpgrade}
+              price={price}
+              profile={profile}
             />
           </section>
         )}
@@ -1150,6 +1158,10 @@ function DesktopNav({ current, onChange }: { current: Screen; onChange: (screen:
       <button className={current === "settings" ? "active" : ""} type="button" onClick={() => onChange("settings")}>
         <SettingsIcon className="webNavIcon" />
         Settings
+      </button>
+      <button className={current === "membership" ? "active" : ""} type="button" onClick={() => onChange("membership")}>
+        <BookmarkIcon className="webNavIcon" />
+        Membership
       </button>
       <a href="/account">
         <PersonIcon className="webNavIcon" />
@@ -1344,25 +1356,68 @@ function SearchScreen({
   );
 }
 
-function SettingsScreen({
+function MembershipScreen({
   isCheckoutLoading,
   isPortalLoading,
   isPriceLoading,
+  onBack,
   onManageBilling,
-  onSignOut,
   onUpgrade,
   price,
+  profile
+}: {
+  isCheckoutLoading: boolean;
+  isPortalLoading: boolean;
+  isPriceLoading: boolean;
+  onBack: () => void;
+  onManageBilling: () => void;
+  onUpgrade: () => void;
+  price: BillingPrice | null;
+  profile: AccountProfile | null;
+}) {
+  const isPaid = profile?.membershipTier === "paid";
+
+  return (
+    <div className="screen utilityScreen membershipScreen">
+      <div className="readerTop membershipTop">
+        <button type="button" onClick={onBack}>‹ BACK</button>
+        <span>MEMBERSHIP</span>
+      </div>
+      <div className="membershipPlans">
+        <section className={`planBox ${!isPaid ? "selected" : ""}`}>
+          <span className="planEyebrow">CURRENT DEFAULT</span>
+          <h2>FREE</h2>
+          <strong>10 NEWS</strong>
+          <p>Latest stories refresh every 10 minutes while the app is open.</p>
+          {!isPaid && <div className="planStatus">YOUR PLAN</div>}
+        </section>
+        <section className={`planBox ${isPaid ? "selected" : ""}`}>
+          <span className="planEyebrow">PRO</span>
+          <h2>{isPriceLoading ? "LOADING..." : price?.display ?? "$2.50 / month"}</h2>
+          <strong>ALL CACHED NEWS</strong>
+          <p>Shows every cached story available in the news backend with faster 5 minute refresh.</p>
+          {isPaid ? (
+            <button className="hardButton" disabled={isPortalLoading} type="button" onClick={onManageBilling}>
+              {isPortalLoading ? "OPENING..." : "MANAGE PRO"}
+            </button>
+          ) : (
+            <button className="hardButton" disabled={isCheckoutLoading || isPriceLoading} type="button" onClick={onUpgrade}>
+              {isCheckoutLoading ? "OPENING..." : "GET PRO"}
+            </button>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function SettingsScreen({
+  onSignOut,
   profile,
   state,
   updateState
 }: {
-  isCheckoutLoading?: boolean;
-  isPortalLoading?: boolean;
-  isPriceLoading?: boolean;
-  onManageBilling: () => void;
   onSignOut: () => void;
-  onUpgrade: () => void;
-  price: BillingPrice | null;
   profile: AccountProfile | null;
   state: StoredState;
   updateState: (updater: (current: StoredState) => StoredState) => void;
@@ -1399,25 +1454,7 @@ function SettingsScreen({
             RENEWS: {new Date(profile.currentPeriodEnd).toLocaleDateString("en-US")}
           </span>
         )}
-        <MembershipSelector
-          isCheckoutLoading={isCheckoutLoading}
-          isPortalLoading={isPortalLoading}
-          isPriceLoading={isPriceLoading}
-          onManageBilling={onManageBilling}
-          onUpgrade={onUpgrade}
-          price={price}
-          profile={profile}
-        />
         <div className="accountActions">
-          {profile?.membershipTier === "paid" ? (
-            <button className="hardButton" type="button" onClick={onManageBilling}>
-              {isPortalLoading ? "OPENING..." : "MANAGE BILLING"}
-            </button>
-          ) : (
-            <button className="hardButton" disabled={isCheckoutLoading || isPriceLoading} type="button" onClick={onUpgrade}>
-              {isCheckoutLoading ? "OPENING..." : "START PRO"}
-            </button>
-          )}
           <button className="hardButton secondary" type="button" onClick={onSignOut}>
             LOG OUT
           </button>
