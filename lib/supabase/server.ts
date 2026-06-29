@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient, type User } from "@supabase/supabase
 import type { StoredState } from "@/lib/app-storage";
 import type { NewsStory } from "@/lib/news/types";
 import { defaultStoredState } from "@/lib/app-storage";
-import type { AccountProfile } from "@/lib/membership";
+import { membershipTierFromSubscriptionStatus, type AccountProfile } from "@/lib/membership";
 import { getSupabasePublicConfig, getSupabaseServerConfig } from "./config";
 
 type DatabaseStory = {
@@ -66,33 +66,122 @@ export async function getAuthContext(request: Request): Promise<AuthContext> {
 
 export async function ensureProfile(admin: SupabaseClient, user: User): Promise<AccountProfile> {
   const email = user.email ?? "";
-  const { data: existing } = await admin
+  const profileQuery = await admin
     .from("profiles")
-    .select("email,membership_tier,stripe_customer_id,stripe_subscription_id")
+    .select(
+      "email,membership_tier,subscription_status,stripe_customer_id,stripe_subscription_id,stripe_price_id,current_period_end,cancel_at_period_end,billing_updated_at"
+    )
     .eq("user_id", user.id)
     .maybeSingle();
+  let existing = profileQuery.data;
+
+  if (profileQuery.error) {
+    const fallbackQuery = await admin
+      .from("profiles")
+      .select("email,membership_tier,stripe_customer_id,stripe_subscription_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    existing = fallbackQuery.data
+      ? {
+          ...fallbackQuery.data,
+          subscription_status: fallbackQuery.data.membership_tier === "paid" ? "active" : "free",
+          stripe_price_id: null,
+          current_period_end: null,
+          cancel_at_period_end: false,
+          billing_updated_at: null
+        }
+      : null;
+  }
 
   if (!existing) {
-    await admin.from("profiles").insert({
+    const { error } = await admin.from("profiles").insert({
       user_id: user.id,
       email,
-      membership_tier: "free"
+      membership_tier: "free",
+      subscription_status: "free"
     });
+    if (error) {
+      await admin.from("profiles").insert({
+        user_id: user.id,
+        email,
+        membership_tier: "free"
+      });
+    }
   }
 
   const profile = existing ?? {
     email,
     membership_tier: "free",
+    subscription_status: "free",
     stripe_customer_id: null,
-    stripe_subscription_id: null
+    stripe_subscription_id: null,
+    stripe_price_id: null,
+    current_period_end: null,
+    cancel_at_period_end: false,
+    billing_updated_at: null
   };
+  const membershipTier =
+    profile.subscription_status && profile.subscription_status !== "free"
+      ? membershipTierFromSubscriptionStatus(profile.subscription_status)
+      : profile.membership_tier === "paid"
+        ? "paid"
+        : "free";
 
   return {
     email: profile.email ?? email,
-    membershipTier: profile.membership_tier === "paid" ? "paid" : "free",
+    membershipTier,
+    subscriptionStatus: profile.subscription_status,
     stripeCustomerId: profile.stripe_customer_id,
-    stripeSubscriptionId: profile.stripe_subscription_id
+    stripeSubscriptionId: profile.stripe_subscription_id,
+    stripePriceId: profile.stripe_price_id,
+    currentPeriodEnd: profile.current_period_end,
+    cancelAtPeriodEnd: profile.cancel_at_period_end,
+    billingUpdatedAt: profile.billing_updated_at
   };
+}
+
+export async function updateProfileSubscription(
+  admin: SupabaseClient,
+  userId: string,
+  fields: {
+    stripeCustomerId?: string | null;
+    stripeSubscriptionId?: string | null;
+    stripePriceId?: string | null;
+    subscriptionStatus?: string | null;
+    currentPeriodEnd?: string | null;
+    cancelAtPeriodEnd?: boolean | null;
+  }
+) {
+  const membershipTier = membershipTierFromSubscriptionStatus(fields.subscriptionStatus);
+
+  const { error } = await admin
+    .from("profiles")
+    .update({
+      membership_tier: membershipTier,
+      subscription_status: fields.subscriptionStatus ?? "free",
+      stripe_customer_id: fields.stripeCustomerId ?? null,
+      stripe_subscription_id: fields.stripeSubscriptionId ?? null,
+      stripe_price_id: fields.stripePriceId ?? null,
+      current_period_end: fields.currentPeriodEnd ?? null,
+      cancel_at_period_end: fields.cancelAtPeriodEnd ?? false,
+      billing_updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq("user_id", userId);
+
+  if (!error) {
+    return;
+  }
+
+  await admin
+    .from("profiles")
+    .update({
+      membership_tier: membershipTier,
+      stripe_customer_id: fields.stripeCustomerId ?? null,
+      stripe_subscription_id: fields.stripeSubscriptionId ?? null,
+      updated_at: new Date().toISOString()
+    })
+    .eq("user_id", userId);
 }
 
 export async function loadUserState(admin: SupabaseClient, userId: string): Promise<StoredState> {

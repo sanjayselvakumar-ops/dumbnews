@@ -8,6 +8,7 @@ import type { DailyBrief, NewsCategory, NewsStory } from "@/lib/news/types";
 import { defaultStoredState, loadStoredState, saveStoredState, type StoredState } from "@/lib/app-storage";
 import { monthDay, shortTime, todayKey } from "@/lib/date";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { MembershipSelector, type BillingPrice } from "@/components/membership-selector";
 import {
   BookmarkIcon,
   CategoryIcon,
@@ -81,6 +82,11 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
   const [lastUpdated, setLastUpdated] = useState(initialBrief.generatedAt);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshError, setRefreshError] = useState(false);
+  const [price, setPrice] = useState<BillingPrice | null>(null);
+  const [isPriceLoading, setIsPriceLoading] = useState(true);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const briefRef = useRef(brief);
   const refreshingRef = useRef(false);
@@ -93,6 +99,42 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
   useEffect(() => {
     briefRef.current = brief;
   }, [brief]);
+
+  useEffect(() => {
+    if (bypassAuthForTests) {
+      setIsPriceLoading(false);
+      return;
+    }
+
+    let mounted = true;
+    fetch("/api/billing/price")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Price unavailable");
+        }
+        return response.json() as Promise<BillingPrice>;
+      })
+      .then((data) => {
+        if (mounted) {
+          setPrice(data);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (mounted) {
+          setIsPriceLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [bypassAuthForTests]);
+
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast((current) => (current === message ? null : current)), 2600);
+  }, []);
 
   useEffect(() => {
     if (bypassAuthForTests) {
@@ -193,8 +235,15 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
     authenticatedFetch("/api/account/settings", accessToken, {
       method: "PUT",
       body: JSON.stringify({ settings: state.settings })
-    }).catch(() => undefined);
-  }, [accessToken, state]);
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Settings save failed");
+        }
+        showToast("SETTINGS SAVED");
+      })
+      .catch(() => showToast("SETTINGS SAVE FAILED"));
+  }, [accessToken, showToast, state]);
 
   useEffect(() => {
     window.localStorage.setItem("dumb-news:last-brief", JSON.stringify(brief));
@@ -463,7 +512,14 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
       authenticatedFetch("/api/account/saved", accessToken, {
         method: "PUT",
         body: JSON.stringify({ storyId, saved: shouldSave })
-      }).catch(() => undefined);
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Save failed");
+          }
+          showToast(shouldSave ? "STORY SAVED" : "STORY UNSAVED");
+        })
+        .catch(() => showToast("SAVE FAILED"));
     }
   }
 
@@ -493,10 +549,12 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
     const text = `${activeStory.headline}\n\n${activeStory.summary}\n\nSource: ${activeStory.source}\n${activeStory.url}`;
     if (navigator.share) {
       await navigator.share({ title: activeStory.headline, text, url: activeStory.url }).catch(() => undefined);
+      showToast("SHARED");
       return;
     }
 
     await navigator.clipboard?.writeText(text).catch(() => undefined);
+    showToast("COPIED");
   }
 
   async function signOut() {
@@ -510,6 +568,7 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
     setAccountSavedStories([]);
     setAccountReady(true);
     setScreen("home");
+    window.location.href = "/login";
   }
 
   function continueWithLocalDemo(email: string) {
@@ -529,14 +588,21 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
       return;
     }
 
-    const response = await authenticatedFetch("/api/billing/checkout", accessToken, { method: "POST" });
-    const data = (await response.json()) as { url?: string; error?: string };
-    if (data.url) {
-      window.location.href = data.url;
-      return;
-    }
+    setIsCheckoutLoading(true);
+    try {
+      const response = await authenticatedFetch("/api/billing/checkout", accessToken, { method: "POST" });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
 
-    setAuthError(data.error ?? "Could not start checkout.");
+      showToast(data.error ?? "CHECKOUT FAILED");
+    } catch {
+      showToast("CHECKOUT FAILED");
+    } finally {
+      setIsCheckoutLoading(false);
+    }
   }
 
   async function openCustomerPortal() {
@@ -544,14 +610,21 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
       return;
     }
 
-    const response = await authenticatedFetch("/api/billing/portal", accessToken, { method: "POST" });
-    const data = (await response.json()) as { url?: string; error?: string };
-    if (data.url) {
-      window.location.href = data.url;
-      return;
-    }
+    setIsPortalLoading(true);
+    try {
+      const response = await authenticatedFetch("/api/billing/portal", accessToken, { method: "POST" });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
 
-    setAuthError(data.error ?? "Could not open billing portal.");
+      showToast(data.error ?? "PORTAL FAILED");
+    } catch {
+      showToast("PORTAL FAILED");
+    } finally {
+      setIsPortalLoading(false);
+    }
   }
 
   if (!authReady) {
@@ -628,9 +701,13 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
         )}
         {screen === "settings" && (
           <SettingsScreen
+            isCheckoutLoading={isCheckoutLoading}
+            isPortalLoading={isPortalLoading}
+            isPriceLoading={isPriceLoading}
             onManageBilling={openCustomerPortal}
             onSignOut={signOut}
             onUpgrade={startCheckout}
+            price={price}
             profile={activeProfile}
             state={state}
             updateState={updateState}
@@ -647,6 +724,9 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
         current={screen}
         dateLabel={monthDay()}
         isPending={isPending}
+        isCheckoutLoading={isCheckoutLoading}
+        isPortalLoading={isPortalLoading}
+        isPriceLoading={isPriceLoading}
         isRefreshing={isRefreshing}
         lastUpdated={lastUpdated}
         onBack={goBackFromDetail}
@@ -671,10 +751,12 @@ export function DumbNewsApp({ initialBrief, bypassAuthForTests = false }: DumbNe
         state={state}
         stories={visibleStories}
         pendingStoryCount={pendingStoryCount}
+        price={price}
         profile={activeProfile}
         total={detailStories.length}
         updateState={updateState}
       />
+      {toast && <div className="toast" role="status">{toast}</div>}
     </main>
   );
 }
@@ -861,6 +943,9 @@ function DesktopShell({
   current,
   dateLabel,
   isPending,
+  isCheckoutLoading,
+  isPortalLoading,
+  isPriceLoading,
   isRefreshing,
   lastUpdated,
   onBack,
@@ -884,6 +969,7 @@ function DesktopShell({
   state,
   stories,
   pendingStoryCount,
+  price,
   profile,
   refreshError,
   total,
@@ -896,6 +982,9 @@ function DesktopShell({
   current: Screen;
   dateLabel: string;
   isPending: boolean;
+  isCheckoutLoading: boolean;
+  isPortalLoading: boolean;
+  isPriceLoading: boolean;
   isRefreshing: boolean;
   lastUpdated: string;
   onBack: () => void;
@@ -919,6 +1008,7 @@ function DesktopShell({
   state: StoredState;
   stories: NewsStory[];
   pendingStoryCount: number;
+  price: BillingPrice | null;
   profile: AccountProfile | null;
   refreshError: boolean;
   total: number;
@@ -937,6 +1027,15 @@ function DesktopShell({
           <h1>DUMB NEWS</h1>
           <p>NEWS FOR DUMMIES.</p>
         </div>
+        <MembershipSelector
+          isCheckoutLoading={isCheckoutLoading}
+          isPortalLoading={isPortalLoading}
+          isPriceLoading={isPriceLoading}
+          onManageBilling={onManageBilling}
+          onUpgrade={onUpgrade}
+          price={price}
+          profile={profile}
+        />
         <div className="webHeaderMeta">
           <span suppressHydrationWarning>{dateLabel}</span>
         </div>
@@ -1014,9 +1113,13 @@ function DesktopShell({
         {current === "settings" && (
           <section className="webUtilityPanel">
             <SettingsScreen
+              isCheckoutLoading={isCheckoutLoading}
+              isPortalLoading={isPortalLoading}
+              isPriceLoading={isPriceLoading}
               onManageBilling={onManageBilling}
               onSignOut={onSignOut}
               onUpgrade={onUpgrade}
+              price={price}
               profile={profile}
               state={state}
               updateState={updateState}
@@ -1053,6 +1156,10 @@ function DesktopNav({ current, onChange }: { current: Screen; onChange: (screen:
         <SettingsIcon className="webNavIcon" />
         Settings
       </button>
+      <a href="/account">
+        <SettingsIcon className="webNavIcon" />
+        Account
+      </a>
     </nav>
   );
 }
@@ -1243,16 +1350,24 @@ function SearchScreen({
 }
 
 function SettingsScreen({
+  isCheckoutLoading,
+  isPortalLoading,
+  isPriceLoading,
   onManageBilling,
   onSignOut,
   onUpgrade,
+  price,
   profile,
   state,
   updateState
 }: {
+  isCheckoutLoading?: boolean;
+  isPortalLoading?: boolean;
+  isPriceLoading?: boolean;
   onManageBilling: () => void;
   onSignOut: () => void;
   onUpgrade: () => void;
+  price: BillingPrice | null;
   profile: AccountProfile | null;
   state: StoredState;
   updateState: (updater: (current: StoredState) => StoredState) => void;
@@ -1283,14 +1398,29 @@ function SettingsScreen({
         <span>ACCOUNT</span>
         <strong>{profile?.email ?? "SIGNED IN"}</strong>
         <span>{profile?.membershipTier === "paid" ? "PAID / ALL NEWS" : "FREE / 10 NEWS"}</span>
+        {profile?.subscriptionStatus && <span>STATUS: {profile.subscriptionStatus}</span>}
+        {profile?.currentPeriodEnd && (
+          <span suppressHydrationWarning>
+            RENEWS: {new Date(profile.currentPeriodEnd).toLocaleDateString("en-US")}
+          </span>
+        )}
+        <MembershipSelector
+          isCheckoutLoading={isCheckoutLoading}
+          isPortalLoading={isPortalLoading}
+          isPriceLoading={isPriceLoading}
+          onManageBilling={onManageBilling}
+          onUpgrade={onUpgrade}
+          price={price}
+          profile={profile}
+        />
         <div className="accountActions">
           {profile?.membershipTier === "paid" ? (
             <button className="hardButton" type="button" onClick={onManageBilling}>
-              MANAGE BILLING
+              {isPortalLoading ? "OPENING..." : "MANAGE BILLING"}
             </button>
           ) : (
-            <button className="hardButton" type="button" onClick={onUpgrade}>
-              UPGRADE $2
+            <button className="hardButton" disabled={isCheckoutLoading || isPriceLoading} type="button" onClick={onUpgrade}>
+              {isCheckoutLoading ? "OPENING..." : "START PRO"}
             </button>
           )}
           <button className="hardButton secondary" type="button" onClick={onSignOut}>

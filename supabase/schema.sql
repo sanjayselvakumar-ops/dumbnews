@@ -7,8 +7,13 @@ create table public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   membership_tier public.membership_tier not null default 'free',
+  subscription_status text not null default 'free',
   stripe_customer_id text unique,
   stripe_subscription_id text unique,
+  stripe_price_id text,
+  current_period_end timestamptz,
+  cancel_at_period_end boolean not null default false,
+  billing_updated_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -54,6 +59,8 @@ create index stories_published_at_idx on public.stories (published_at desc);
 create index stories_category_published_at_idx on public.stories (category, published_at desc);
 create index saved_stories_user_created_idx on public.saved_stories (user_id, created_at desc);
 create index read_stories_user_read_idx on public.read_stories (user_id, read_at desc);
+create index profiles_stripe_customer_idx on public.profiles (stripe_customer_id);
+create index profiles_stripe_subscription_idx on public.profiles (stripe_subscription_id);
 
 alter table public.profiles enable row level security;
 alter table public.stories enable row level security;
@@ -93,3 +100,12 @@ create policy "Users can insert own settings" on public.user_settings
 
 create policy "Users can update own settings" on public.user_settings
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Idempotent production upgrade for existing Supabase projects.
+alter table public.profiles add column if not exists subscription_status text not null default 'free';
+alter table public.profiles add column if not exists stripe_price_id text;
+alter table public.profiles add column if not exists current_period_end timestamptz;
+alter table public.profiles add column if not exists cancel_at_period_end boolean not null default false;
+alter table public.profiles add column if not exists billing_updated_at timestamptz;
+create index if not exists profiles_stripe_customer_idx on public.profiles (stripe_customer_id);
+create index if not exists profiles_stripe_subscription_idx on public.profiles (stripe_subscription_id);

@@ -21,6 +21,10 @@ export async function POST(request: Request) {
 
   const user = context.user;
   const profile = await ensureProfile(context.admin, user);
+  if (profile.membershipTier === "paid") {
+    return NextResponse.json({ error: "This account already has Pro access." }, { status: 409 });
+  }
+
   const appUrl = getAppUrl(request);
   const customerId =
     profile.stripeCustomerId ??
@@ -33,16 +37,34 @@ export async function POST(request: Request) {
       })
     ).id;
 
+  await stripe.customers.update(customerId, {
+    email: profile.email || user.email || undefined,
+    metadata: {
+      user_id: user.id
+    }
+  });
+
   if (!profile.stripeCustomerId) {
-    await context.admin.from("profiles").update({ stripe_customer_id: customerId }).eq("user_id", user.id);
+    const { error } = await context.admin
+      .from("profiles")
+      .update({
+        stripe_customer_id: customerId,
+        stripe_price_id: priceId,
+        billing_updated_at: new Date().toISOString()
+      })
+      .eq("user_id", user.id);
+    if (error) {
+      await context.admin.from("profiles").update({ stripe_customer_id: customerId }).eq("user_id", user.id);
+    }
   }
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
+    client_reference_id: user.id,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/?billing=success`,
-    cancel_url: `${appUrl}/?billing=cancelled`,
+    success_url: `${appUrl}/account?billing=success`,
+    cancel_url: `${appUrl}/account?billing=cancelled`,
     metadata: {
       user_id: user.id
     },

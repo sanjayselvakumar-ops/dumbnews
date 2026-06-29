@@ -115,6 +115,58 @@
   text-transform: uppercase;
 }
 
+.accountPage {
+  background: var(--bg);
+  border: 3px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: min(760px, calc(100vh - 36px));
+  width: min(760px, calc(100vw - 24px));
+}
+
+.accountHeader {
+  align-items: center;
+  border-bottom: 3px solid var(--line);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 160px 1fr;
+  min-height: 82px;
+  padding: 12px 18px;
+}
+
+.accountHeader h1 {
+  font-size: 42px;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+}
+
+.accountPanel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.accountLine {
+  border-bottom: 1px dashed var(--line);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 190px 1fr;
+  min-height: 46px;
+  padding-bottom: 14px;
+}
+
+.accountLine span,
+.accountLine strong {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-transform: uppercase;
+}
+
 .plainSwitch {
   background: transparent;
   border: 0;
@@ -124,6 +176,65 @@
   font-weight: 700;
   padding: 10px 0;
   text-decoration: underline;
+}
+
+.membershipSelector {
+  border: 2px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 56px;
+}
+
+.membershipSelector button {
+  background: var(--bg);
+  border: 0;
+  border-right: 2px solid var(--line);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 3px;
+  justify-content: center;
+  line-height: 1.05;
+  min-width: 0;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+.membershipSelector button:last-child {
+  border-right: 0;
+}
+
+.membershipSelector button.selected {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.membershipSelector button:disabled {
+  cursor: default;
+}
+
+.membershipSelector span {
+  font-size: 11px;
+}
+
+.toast {
+  background: var(--ink);
+  border: 2px solid var(--line);
+  bottom: 18px;
+  color: var(--bg);
+  font-size: 15px;
+  font-weight: 700;
+  left: 50%;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  position: fixed;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  z-index: 20;
 }
 
 .font-small {
@@ -568,6 +679,10 @@
   margin-top: 8px;
 }
 
+.accountBlock .membershipSelector {
+  margin-top: 10px;
+}
+
 .settingBlock select,
 .settingBlock input {
   background: var(--bg);
@@ -672,9 +787,10 @@
   .webHeader {
     align-items: center;
     border-bottom: 3px solid var(--line);
-    display: flex;
+    display: grid;
     flex: 0 0 78px;
-    justify-content: space-between;
+    gap: 24px;
+    grid-template-columns: minmax(310px, 1fr) auto minmax(110px, 1fr);
     padding: 0 26px 0 30px;
   }
 
@@ -707,6 +823,18 @@
     gap: 26px;
     line-height: 1;
     white-space: nowrap;
+    justify-content: flex-end;
+  }
+
+  .webHeader .membershipSelector {
+    min-width: 330px;
+    min-height: 46px;
+  }
+
+  .webHeader .membershipSelector button {
+    font-size: 13px;
+    min-width: 126px;
+    padding: 7px 11px;
   }
 
   .webBody {
@@ -731,10 +859,12 @@
     gap: 8px;
   }
 
-  .webNav button {
+  .webNav button,
+  .webNav a {
     align-items: center;
     background: transparent;
     border: 0;
+    color: var(--ink);
     display: grid;
     font-size: 18px;
     font-weight: 700;
@@ -743,6 +873,7 @@
     min-height: 58px;
     padding: 0 14px;
     text-align: left;
+    text-decoration: none;
   }
 
   .webNav button.active {
@@ -911,6 +1042,15 @@
 
   .webHeaderMeta {
     gap: 16px;
+  }
+
+  .webHeader .membershipSelector {
+    min-width: 280px;
+  }
+
+  .webHeader .membershipSelector button {
+    font-size: 12px;
+    min-width: 108px;
   }
 
   .webListPanel .storyRow {
